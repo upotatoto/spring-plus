@@ -20,13 +20,13 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             "WHERE t.id = :todoId")
     Optional<Todo> findByIdWithUser(@Param("todoId") Long todoId);
 
-    // 새 검색 메서드: weather 조건과 수정일 기간 조건을 적용한 검색
+
     @Query("SELECT t FROM Todo t " +
             "LEFT JOIN FETCH t.user u " +
             "WHERE (:weather IS NULL OR t.weather = :weather) " +
             "AND (:startDate IS NULL OR t.modifiedAt >= :startDate) " +
             "AND (:endDate IS NULL OR t.modifiedAt <= :endDate) " +
-            "ORDER BY t.modifiedAt DESC")
+            "ORDER BY t.modifiedAt DESC") // 수정일 기준으로
     Page<Todo> findByWeatherAndModifiedAtBetween(
             @Param("weather") String weather,
             @Param("startDate") LocalDateTime startDate,

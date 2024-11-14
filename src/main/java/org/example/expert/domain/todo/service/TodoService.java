@@ -50,27 +50,6 @@ public class TodoService {
         );
     }
 
-    public Page<TodoResponse> getTodos(int page, int size, Optional<String> weather, Optional<LocalDateTime> startDate, Optional<LocalDateTime> endDate) {
-        Pageable pageable = PageRequest.of(page - 1, size);
-
-        // Optional 값에서 실제 값을 꺼내거나 null로 변환
-        String weatherValue = weather.orElse(null);
-        LocalDateTime startDateValue = startDate.orElse(null);
-        LocalDateTime endDateValue = endDate.orElse(null);
-
-        Page<Todo> todos = todoRepository.findByWeatherAndModifiedAtBetween(weatherValue, startDateValue, endDateValue, pageable);
-
-        return todos.map(todo -> new TodoResponse(
-                todo.getId(),
-                todo.getTitle(),
-                todo.getContents(),
-                todo.getWeather(),
-                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail(), todo.getUser().getNickname()),
-                todo.getCreatedAt(),
-                todo.getModifiedAt()
-        ));
-    }
-
     public TodoResponse getTodo(long todoId) {
         Todo todo = todoRepository.findByIdWithUser(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
@@ -88,10 +67,21 @@ public class TodoService {
         );
     }
 
-    public Page<TodoResponse> searchTodos(String weather, LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
+    public Page<TodoResponse> getTodos(
+            int page,
+            int size,
+            Optional<String> weather,
+            Optional<LocalDateTime> startDate,
+            Optional<LocalDateTime> endDate) {
+
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Todo> todos = todoRepository.findByWeatherAndModifiedAtBetween(weather, startDate, endDate, pageable);
+        Page<Todo> todos = todoRepository.findByWeatherAndModifiedAtBetween(
+                weather.orElse(null),
+                startDate.orElse(null),
+                endDate.orElse(null),
+                pageable
+        );
 
         return todos.map(todo -> new TodoResponse(
                 todo.getId(),
