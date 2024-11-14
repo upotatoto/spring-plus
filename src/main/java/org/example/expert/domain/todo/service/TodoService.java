@@ -17,6 +17,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -47,10 +50,15 @@ public class TodoService {
         );
     }
 
-    public Page<TodoResponse> getTodos(int page, int size) {
+    public Page<TodoResponse> getTodos(int page, int size, Optional<String> weather, Optional<LocalDateTime> startDate, Optional<LocalDateTime> endDate) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
+        // Optional 값에서 실제 값을 꺼내거나 null로 변환
+        String weatherValue = weather.orElse(null);
+        LocalDateTime startDateValue = startDate.orElse(null);
+        LocalDateTime endDateValue = endDate.orElse(null);
+
+        Page<Todo> todos = todoRepository.findByWeatherAndModifiedAtBetween(weatherValue, startDateValue, endDateValue, pageable);
 
         return todos.map(todo -> new TodoResponse(
                 todo.getId(),
@@ -78,5 +86,21 @@ public class TodoService {
                 todo.getCreatedAt(),
                 todo.getModifiedAt()
         );
+    }
+
+    public Page<TodoResponse> searchTodos(String weather, LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        Page<Todo> todos = todoRepository.findByWeatherAndModifiedAtBetween(weather, startDate, endDate, pageable);
+
+        return todos.map(todo -> new TodoResponse(
+                todo.getId(),
+                todo.getTitle(),
+                todo.getContents(),
+                todo.getWeather(),
+                new UserResponse(todo.getUser().getId(), todo.getUser().getEmail(), todo.getUser().getNickname()),
+                todo.getCreatedAt(),
+                todo.getModifiedAt()
+        ));
     }
 }
